@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="Author" contentr="author_name">
+    <meta name="Keywords" contentr="关键字">
+    <meta name="Description" contentr="页面描述">
+    <title>windows 文件夹窗口</title>
+    <style>
+    *{ margin: 0; padding: 0; }
+    body{ background-color: #CCC; height: 100%; }
+    #folder{ width: 300px; height: 150px; font-size: 12px; background-color: #FFF; overflow: hidden; position: absolute; left: 40%; top: 40%; border-radius: 5px; }
+    #drag{ width: 96%; height: 20px; margin: 0 2%; padding: 5px 0; border-bottom: 1px solid #000; cursor: move; }
+    #drag a, #mixRevert{ float: right; width:21px; height:19px; margin-left:5px; background-image:url(img/tool.png); }
+    #mixRevert{ display: none; position: absolute; left: 50%; top: 30px; }
+    #mixRevert:hover{ background-position: 0 -29px; }
+    #mix{ background-position:-29px 0; }
+    #mix:hover{ background-position:-29px -29px; }
+    #max{ background-position:-60px 0;}
+    #max:hover{ background-position:-60px -29px; }
+    #close{ background-position:-89px -0;}
+    #close:hover{ background-position:-89px -29px; }
+    #drag #maxRevert{ background-position:-149px 0; display: none;}
+    #drag #maxRevert:hover{ background-position:-149px -29px; }
+    #content{ overflow:auto; margin: 2px 2%; }
+
+    #left{  position:absolute; top:0; width: 5px; height: 100%; cursor: w-resize; }
+    #right{  position:absolute; right: 0; top:0; width: 5px; height: 100%; cursor: e-resize; }
+    #top{  position:absolute; top:0; height: 5px; width: 100%; cursor: n-resize; }
+    #bottom{  position:absolute; bottom: 0; height: 5px; width: 100%; cursor: s-resize; }
+    #topLeft{ position:absolute;width:5px;height:5px;top:0;left:0;overflow:hidden;cursor:nw-resize; }
+    #topRight{ position:absolute;width:5px;height:5px;top:0;right:0;overflow:hidden;cursor:ne-resize; }
+    #bottomLeft{ position:absolute;width:5px;height:5px;left:0;bottom:0;overflow:hidden;cursor:ne-resize; }
+    #bottomRight{ position:absolute;width:14px;height:14px;right:0;bottom:0;overflow:hidden;cursor:se-resize;background:url(img/resize.png) no-repeat; }
+    </style>
+</head>
+
+<body>
+    <div id="folder">
+        <div id="drag">
+            这是一个可以拖拽的窗口
+            <a href="#" id="close" title="关闭"></a>
+            <a href="#" id="maxRevert" title="最大化还原"></a>
+            <a href="#" id="max" title="最大化"></a>
+            <a href="#" id="mix" title="最小化"></a>
+        </div>
+        <div id="content">
+            ① 窗口可以拖动；<br />
+            ② 窗口可以通过八个方向改变大小；<br />
+            ③ 窗口可以最小化、最大化、还原、关闭；<br />
+            ④ 限制窗口最小宽度/高度。
+        </div>
+
+        <div id="left"></div>
+        <div id="right"></div>
+        <div id="top"></div>
+        <div id="bottom"></div>
+        <div id="topLeft"></div>
+        <div id="topRight"></div>
+        <div id="bottomLeft"></div>
+        <div id="bottomRight"></div>
+        <div class="mixRevert"></div>
+    </div>
+    <a href="#" id="mixRevert" title="最小化还原功能"></a>
+    
+</body>
+</html>
+<script>
+// 拖拽函数
+function dragFn(iDrag,iTarget){
+    let close = iDrag.querySelector('#close');
+    let max = iDrag.querySelector('#max');
+    let maxRevert = iDrag.querySelector('#maxRevert');
+    let mix = iDrag.querySelector('#mix');
+    let mixRevert = document.querySelector('#mixRevert');
+    let iTargetResize = {width:iTarget.offsetWidth,height:iTarget.offsetHeight,left:iTarget.offsetLeft,top:iTarget.offsetTop};
+
+    // 按下鼠标左键激活拖拽功能
+    iDrag.onmousedown = function(e){
+        let ev = window.event || e;
+        let distanceX = ev.clientX - iTarget.offsetLeft;
+        let distanceY = ev.clientY - iTarget.offsetTop;
+        document.onmousemove = function(e){
+            let ev = window.event || e;
+            let nowX = ev.clientX - distanceX;
+            let nowY = ev.clientY - distanceY;
+
+            let moveWidth = document.documentElement.clientWidth - iTarget.offsetWidth;
+            let moveHeight = document.documentElement.clientHeight - iTarget.offsetHeight;
+
+            // 不能超出界限(超出界限等于界限)
+            nowX < 0 ? nowX = 0:null;
+            nowY < 0 ? nowY = 0:null;
+            nowX >= moveWidth?nowX = moveWidth:null;
+            nowY >= moveHeight?nowY = moveHeight:null;
+
+            iTarget.style.left = nowX + "px";
+            iTarget.style.top = nowY + "px";
+        }
+    }
+
+    // 松开鼠标左键时区拖拽功能
+    iDrag.onmouseup = function(){
+        document.onmousemove = null;
+    }
+
+    // 绑定最大化功能
+    max.onclick = function(){
+        iTargetResize.left = iTarget.offsetLeft;
+        iTargetResize.top = iTarget.offsetTop;
+        iTargetResize.width = iTarget.offsetWidth;
+        iTargetResize.height = iTarget.offsetHeight;
+        iTarget.style.left = iTarget.style.top = 0;
+        iTarget.style.width = '100%';
+        iTarget.style.height = '100%';
+        this.style.display = 'none';
+        maxRevert.style.display = 'block';
+    }
+
+    // 绑定还原功能
+    maxRevert.onclick = function(){
+        iTarget.style.left = iTargetResize.left + 'px';
+        iTarget.style.top = iTargetResize.top + 'px';
+        iTarget.style.width = iTargetResize.width + 'px';
+        iTarget.style.height = iTargetResize.height + 'px';
+        this.style.display = 'none';
+        max.style.display = 'block';
+    }
+
+    // 绑定最小化功能
+    mix.onclick = function(){
+        iTarget.style.display = 'none';
+        mixRevert.style.display = 'block';
+    }
+
+    // 绑定最小化还原功能
+    mixRevert.onclick = function(){
+        iTarget.style.display = 'block';
+        mixRevert.style.display = 'none';
+    }
+
+    // 绑定关闭功能
+    close.onclick = function(){
+        iTarget.parentNode.removeChild(iTarget);
+    }
+}
+
+// 改变大小函数
+function folderResize(iChange,iTarget,isResize){
+    let targetDafault = iChange.dafaults;
+    iTarget.isResizes = {left:false,right:false,top:false,bottom:false};
+
+    iTarget.onmousedown = function(ev){
+        let e = window.event || ev;
+        let mouseX = e.clientX;
+        let mouseY = e.clientY;
+        targetDafault.width = iChange.offsetWidth;
+        targetDafault.height = iChange.offsetHeight;
+        for(let item in iTarget.isResizes){
+            if(item in isResize) {
+                console.log(item);
+                iTarget.isResizes[item] = !iTarget.isResizes[item];
+            }
+            iChange.style[item] = targetDafault[item] = getStyle(iChange,item);
+        }
+        
+        document.onmousemove = function(ev){
+            let e = window.event || ev;
+            let moveX = e.clientX - mouseX;
+            let moveY = e.clientY - mouseY;
+
+            if(iTarget.isResizes.left){
+                moveX = isLimit(-targetDafault.left,iChange.dafaults.width*0.2,moveX);
+                iChange.style.width = targetDafault.width - moveX + 'px';
+                iChange.style.left = targetDafault.left + moveX + 'px';
+            }else if(iTarget.isResizes.right){
+                moveX = isLimit(-iChange.dafaults.width*0.2,document.documentElement.clientWidth-iChange.offsetLeft-targetDafault.width,moveX);
+                iChange.style.width = targetDafault.width + moveX + 'px';
+            }
+            if(iTarget.isResizes.top ){
+                moveY = isLimit(-targetDafault.top,iChange.dafaults.height*0.5,moveY);
+                iChange.style.height = targetDafault.height - moveY + 'px';
+                iChange.style.top = targetDafault.top + moveY + 'px';
+            }else if(iTarget.isResizes.bottom){
+                moveY = isLimit(-iChange.dafaults.height*0.2,document.documentElement.clientHeight-targetDafault.top-targetDafault.height,moveY);
+                iChange.style.height = targetDafault.height + moveY + 'px';
+            }
+
+            return false;
+        }
+    }
+
+    function isLimit(maxValu,mixValue,standValue){
+        if(maxValu >= standValue){
+            return maxValu;
+        }else if(mixValue <= standValue){
+            return mixValue;
+        }
+        return standValue;
+    }
+
+    document.onmouseup = function(){
+        document.onmousemove = null;
+    }
+}
+
+// 获取元素属性
+function getStyle(Element,Property,Boolen){
+    let atter =  Element.currentStyle ? Element.currentStyle[Property] : getComputedStyle(Element)[Property];
+    if(!Boolen){
+        atter = parseInt(atter);
+    }
+    return atter
+}
+
+window.onload = function(){
+    let folder = document.querySelector('#folder');
+    let drag = document.querySelector('#drag');
+    let left = document.querySelector('#left');
+    let right = document.querySelector('#right');
+    let top = document.querySelector('#top');
+    let bottom = document.querySelector('#bottom');
+    let topLeft = document.querySelector('#topLeft');
+    let topRight = document.querySelector('#topRight');
+    let bottomLeft = document.querySelector('#bottomLeft');
+    let bottomRight = document.querySelector('#bottomRight');
+    folder.dafaults = {width:getStyle(folder,'width'),height:getStyle(folder,'height')}
+
+    // 拖拽函数
+    dragFn(drag,folder);
+
+    // 四边改变大小函数
+    folderResize(folder,left,{left:true});
+    folderResize(folder,right,{right:true});
+    folderResize(folder,top,{top:true});
+    folderResize(folder,bottom,{bottom:true});
+
+    // 四边改变大小函数
+    folderResize(folder,topLeft,{left:true,top:true});
+    folderResize(folder,topRight,{right:true,top:true});
+    folderResize(folder,bottomLeft,{left:true,bottom:true});
+    folderResize(folder,bottomRight,{right:true,bottom:true});
+}
+</script>

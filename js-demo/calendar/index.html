@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="Author" content="author_name">
+    <meta name="Keywords" content="关键字">
+    <meta name="Description" content="页面描述">
+    <title>日历</title>
+    <style>
+    *{ margin: 0; padding: 0; }
+    #calendarSingle{ border: 1px solid red; }
+    </style>
+</head>
+<body>
+<div id="calendarSingle"></div>
+<hr>
+<div id="calendarSelect"></div>
+</body>
+</html>
+<script src="js/calendar.js"></script>
+<script>
+// 单日历，不可筛选
+let calendarSingle = new Calendar({el : "#calendarSingle",date:'2020,2,1'});
+
+// 可筛选年月
+let calendarSelect = new Calendar({el : '#calendarSelect', isSelect : true});
+</script>

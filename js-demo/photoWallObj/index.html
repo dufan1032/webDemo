@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="Author" contentr="author_name">
+    <meta name="Keywords" contentr="关键字">
+    <meta name="Description" contentr="页面描述">
+    <title>照片墙-多实例演示(面向对象)</title>
+    <style>
+    *{ padding: 0; margin: 0; list-style: none; }
+    body{ font:10px/1.5 Arial, Helvetica, sans-serif; background-color: #666; }
+    .box{ width: 860px; margin: 10px auto; background-color: #eee; border:1px solid #bb8866; overflow: hidden; }
+    .box h2{ height: 30px; line-height: 30px; text-align: right; padding: 0 15px; border-bottom: 1px solid #b8b8b8; background-color: #fafafa ; }
+    .box h2 a{ color: #06f; outline:none; }
+    .box h2 a:hover{ color: #b20; }
+    .box ul{ float: left; padding: 0 15px 15px 0; position: relative; }
+    .box ul li{ float: left; width: 140px; height: 105px; padding:5px; margin: 15px 0 0 15px; background:#fff; border:1px solid #c3c3c3; } 
+    /* .box ul li img{ float: left; } */
+    </style>
+</head>
+<body>
+<div class="box">
+    <h2><a href="javascript:;">随机排序</a></h2>
+    <ul></ul>
+</div>
+<div class="box">
+    <h2><a href="javascript:;">随机排序</a></h2>
+    <ul></ul>
+</div>
+</body>
+</html>
+<script>
+let photoWall = function(el,data){this._init_(el,data)};
+
+photoWall.prototype = {
+    _init_ : function(el,data){
+        this.oData = data;
+        this.oBox = this.$(el);
+        for(let i=0;i<this.oBox.length;i++){
+            this.created(this.oBox[i]);
+        }
+        this.zIndex = 1;
+    },
+    created : function(oElement){
+        let oUl = this.$('ul',oElement)[0];
+        let oBtn = this.$('a',oElement)[0];
+        let oFrag = document.createDocumentFragment();
+        for(let i=0;i<this.oData.length;i++){
+            let oLi = document.createElement('li');
+            let oImg = document.createElement('img');
+            oImg.src = this.oData[i];
+            oLi.appendChild(oImg);
+            oFrag.appendChild(oLi);
+        }
+        oUl.appendChild(oFrag);
+        this.changeLayout(oUl);
+
+        let oThis = this;
+        oBtn.onclick = function(){
+            this.arr = [];
+            this.oElement = oThis.$('li',oUl);
+            for(let i=0;i<this.oElement.length;i++){
+                this.random = Math.floor(Math.random()*oUl.oPos.length);
+                // this.oElement[i].style.left = oUl.oPos[this.random].left + 'px';
+                // this.oElement[i].style.top = oUl.oPos[this.random].top + 'px';
+                oThis.imgMove(this.oElement[i],{left:oUl.oPos[this.random].left,top:oUl.oPos[this.random].top});
+                this.arr.push(oUl.oPos.splice(this.random,1)[0]);
+            }
+            oUl.oPos = this.arr;
+        }
+    },
+    changeLayout : function(parentUl){
+        let oLi = this.$('li',parentUl);
+        parentUl.oPos = [];
+        parentUl.style.width = parentUl.offsetWidth + 'px';
+        parentUl.style.height = parentUl.offsetHeight - 13 + 'px';
+        for(let n=0;n<oLi.length;n++){
+            oLi[n].style.cssText = '';
+        }
+        for(let n=0;n<oLi.length;n++){
+            oLi[n].index = n;
+            oLi[n].style.top = oLi[n].offsetTop + 'px';
+            oLi[n].style.left = oLi[n].offsetLeft + 'px';
+            parentUl.oPos.push({left:oLi[n].offsetLeft,top:oLi[n].offsetTop});
+            oLi[n].className = 'li' + n;
+        }
+        for(let n=0;n<oLi.length;n++){
+            oLi[n].style.position = 'absolute';
+            oLi[n].style.margin = '0';
+            this.drag(oLi[n]);
+        }
+    },
+    drag : function(curElement){
+        let oThis = this;
+        curElement.style.cursor = 'move';
+        curElement.onmousedown = function(e){
+            let ev = window.event || e;
+            let mouseX = ev.clientX - this.offsetLeft;
+            let mouseY = ev.clientY - this.offsetTop;
+            this.style.zIndex = oThis.zIndex++;
+            document.onmousemove = function(e){
+                let ev = window.event || e;
+                let moveX = ev.clientX - mouseX;
+                let moveY = ev.clientY - mouseY;
+                let maxLeft = curElement.parentNode.offsetWidth - curElement.offsetWidth;
+                let maxTop = curElement.parentNode.offsetHeight - curElement.offsetHeight;
+
+                (moveX < 0)?moveX=0:null;
+                (moveY < 0)?moveY=0:null;
+                (moveX > maxLeft)?moveX=maxLeft:null;
+                (moveY > maxTop)?moveY=maxTop:null;
+
+                curElement.style.left = moveX + 'px';
+                curElement.style.top = moveY + 'px';
+
+                oThis.ifExchange(curElement);
+
+                return false;
+            }
+
+            document.onmouseup = function(){
+                document.onmouseup = document.onmousemove = null;
+                let isTrue = oThis.ifExchange(curElement,true);
+                let tarPos = curElement.parentNode.oPos;
+                let elComment = oThis.$('li',curElement.parentNode);
+                if(isTrue == undefined){
+                    oThis.imgMove(curElement,{left:tarPos[curElement.index].left,top:tarPos[curElement.index].top});
+                }else{
+                    console.log(curElement.index,elComment[isTrue].index);
+                    oThis.imgMove(curElement,{left:tarPos[isTrue].left,top:tarPos[isTrue].top});
+                    oThis.imgMove(elComment[isTrue],{left:tarPos[curElement.index].left,top:tarPos[curElement.index].top});
+                    oThis.exchange(curElement,elComment[isTrue],tarPos);
+                    console.log(curElement.index,elComment[isTrue].index);
+                }
+            }
+
+            return false;
+        }
+    },
+    ifExchange : function(nowElement,isReturn){
+        let eData = nowElement.parentNode.oPos;
+        let changeElement = this.$('li',nowElement.parentNode);
+        for(let i=0;i<eData.length;i++){
+            this.getCss(changeElement[i],'opacity',100);
+            this.getCss(changeElement[i],'border','0');
+            if(nowElement.offsetLeft + nowElement.offsetWidth > eData[i].left + nowElement.offsetWidth*0.2 && nowElement.offsetLeft < eData[i].left + nowElement.offsetWidth*0.3){
+                if(nowElement.offsetTop + nowElement.offsetHeight > eData[i].top + nowElement.offsetHeight*0.2 && nowElement.offsetTop < eData[i].top + nowElement.offsetHeight*0.3){
+                    if(nowElement.index != i){
+                        if(isReturn == true){
+                            return i;
+                        }
+                        this.getCss(changeElement[i],'opacity',50);
+                        this.getCss(changeElement[i],'border','dashed red 2');
+                    }
+                }
+            }
+        }
+    },
+    imgMove : function(moveElmenet,moveTarget){
+        clearInterval(moveElmenet.timer);
+        let mThis = this;
+        moveElmenet.timer = setInterval(function(){
+            let lock = true;
+            for(let item in moveTarget){
+                let current = mThis.getCss(moveElmenet,item);
+                let iSpeed = (moveTarget[item] - current)/5;
+                iSpeed = iSpeed > 0?Math.ceil(iSpeed):Math.floor(iSpeed);
+                mThis.getCss(moveElmenet,item,current+iSpeed);
+                if(current+iSpeed != moveTarget[item]) lock = false; 
+            }
+            if(lock){
+                clearInterval(moveElmenet.timer);
+            }
+        },30);
+    },
+    exchange : function(change1,change2,changeData){
+        let index = changeData[change2.index];
+        changeData[change2.index] = changeData[change1.index];
+        changeData[change1.index] = index;
+    },
+    getCss : function(attrElement,attrName,attrValue){
+        if(attrValue){
+            if(attrName == "opacity"){
+                attrElement.style.opacity = attrValue/100;
+                attrElement.style.filter = 'alpha(opacity=' + attrValue + ')';
+            }else{
+                attrElement.style[attrName] = attrValue + 'px';
+            }
+        }else{
+            let ret = (attrElement.currentStyle)?attrElement.currentStyle[attrName]:getComputedStyle(attrElement,null)[attrName];
+            return parseFloat(ret);
+        }
+    },
+    $ : function(id,parentEl){
+        parentEl = parentEl || document;
+        if(typeof id === 'string'){
+            if(id.slice(0,1) == '#'){
+                return parentEl.getElementById(id.slice(1));
+            }else if(id.slice(0,1) == '.'){
+                return parentEl.getElementsByClassName(id.slice(1));
+            }else{
+                return parentEl.getElementsByTagName(id);
+            }
+        }
+    }
+}
+
+window.onload = function(){
+    let oData = [];
+    for(let i=0;i<20;i++){
+        oData.push('img/'+i+'.jpg');
+    }
+
+    new photoWall('.box',oData);
+}
+</script>

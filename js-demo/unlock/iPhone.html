@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="Author" contentr="author_name">
+    <meta name="Keywords" contentr="关键字">
+    <meta name="Description" contentr="页面描述">
+    <title>模拟iPhone手机解锁效果</title>
+    <style>
+        .iPhone {
+            width: 426px;
+            height: 640px;
+            background: url('img/1.jpg') no-repeat;
+            margin: 0 auto;
+            position: relative;
+        }
+        .lock{
+            width: 93px;
+            height: 62px;
+            display: block;
+            background: url('img/btn.jpg') no-repeat;
+            cursor: pointer;
+            position: absolute;
+            left: 9%;
+            bottom: 5%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="iPhone"><span class="lock"></span></div>
+</body>
+</html>
+<script>
+window.onload = function(){
+    let iPhone = document.getElementsByClassName('iPhone')[0];
+    let lock = document.getElementsByClassName('lock')[0];
+    let posLeft = lock.offsetLeft;
+
+    // 当鼠标点击 lock 时，触发鼠标移动解锁事件
+    lock.onmousedown = function(ev){
+        let e = window.event || ev;
+        let lockLeft = e.clientX - this.offsetLeft;
+        this.onmousemove = function(ev){
+            let eve = window.event || ev;
+            let newLeft = eve.clientX - lockLeft;
+            newLeft = (newLeft > posLeft[0])? newLeft : posLeft[0];
+            this.style.left = newLeft + 'px';
+            move(this,newLeft);
+            if(newLeft > iPhone.offsetWidth*0.7){
+                unlock();
+            }
+        }
+    }
+    lock.onmouseup = lock.onmouseout = function(){
+        this.onmousemove = null;
+        if(this.offsetLeft > iPhone.offsetWidth*0.5){
+            move(this,iPhone.offsetWidth*0.7,unlock);
+        }else{
+            move(this,posLeft)
+        }
+    }
+
+    function move(el,endTar,fn){
+        clearInterval(timer);
+        var timer = setInterval(function(){
+            let step = (end - el.offsetLeft)/10;
+            step = step > 0 ?  Math.ceil(step) : Math.floor(step);
+            el.style.left = el.offsetLeft + step + 'px';
+            // posLeft[1] -= 1;
+            if( el.offsetLeft == Math.floor(end) ){
+                clearInterval(timer);
+                if(fn) fn();
+            }
+        },1);
+    }
+
+    function unlock(){
+        iPhone.style.background = 'url("img/2.jpg") no-repeat'
+        lock.style.display =  'none';
+        lock.style.left = posLeft[0] + 'px';
+    }
+}
+</script>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="Author" contentr="author_name">
+    <meta name="Keywords" contentr="关键字">
+    <meta name="Description" contentr="页面描述">
+    <title>拖拽移动</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        body {
+            background-color: black;
+            color: white;
+        }
+
+        div {
+            background-color: #333;
+            border: 2px solid #ccc;
+            width: 300px;
+            height: 150px;
+            position: absolute;
+            left: 45%;
+            top: 45%;
+        }
+
+        h2 {
+            border-bottom: 2px solid #ccc;
+            background-color: #222;
+            text-align: right;
+            padding-bottom: 10px;
+            cursor: move;
+        }
+
+        h2 a {
+            color: white;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        p {
+            padding: 0 10px;
+            margin-top: 10px;
+        }
+
+        span {
+            color: yellow;
+        }
+    </style>
+    <script>
+        window.onload = function () {
+            let moveBox = document.getElementsByTagName('div')[0];
+            let moveCur = document.getElementsByTagName('h2')[0];
+            let moveWrite = document.getElementsByTagName('span');
+            let movePlay = moveCur.getElementsByTagName('a')[0];
+            let moveBool = false;
+            let moveArr = [];
+
+            // 1. 鼠标按下激活拖拽事件
+            moveCur.onmousedown = function (ev) {
+                const e = window.event || ev;
+                let moveX = e.clientX - moveBox.offsetLeft;
+                let moveY = e.clientY - moveBox.offsetTop;
+
+                // 2. 激活拖拽事件
+                document.onmousemove = function (eve) {
+                    const even = window.event || eve;
+                    // 每次移动的距离：鼠标移动的距离-鼠标距离左/上边框的距离
+                    let moveDivX = even.clientX - moveX;
+                    let moveDivY = even.clientY - moveY;
+
+                    // 将移动的数据的距离放在数组中
+                    moveArr.push({ x: moveDivX, y: moveDivY });
+
+                    // 修改并监听移动的位置
+                    moveBool = true;
+                    state(moveDivX, moveDivY);
+                }
+            }
+
+            // 3. 鼠标释放，结束拖拽事件
+            document.onmouseup = function () {
+                moveWrite[0].innerHTML = false;
+                document.onmousemove = null;
+            }
+
+            // 4. 点击回放拖拽轨迹
+            movePlay.onmouseup = function (e) {
+                if (moveArr.length <= 0) return;
+                let num = moveArr.length - 1;
+                let timer = setInterval(function () {
+                    moveBool = true;
+                    state(moveArr[num].x, moveArr[num].y);
+                    num--;
+                    if (num == -1) {
+                        clearInterval(timer);
+                        moveWrite[0].innerHTML = false;
+                        moveArr = [];
+                    }
+                }, 30);
+            }
+
+            //  阻止事件冒泡
+            movePlay.onmousedown = function (e) {
+                (event || e).cancelBubble = true;
+            }
+
+            // 监听移动的数据
+            function state(x, y) {
+                moveWrite[0].innerHTML = moveBool;
+                moveWrite[1].innerHTML = x;
+                moveWrite[2].innerHTML = y;
+                moveBox.style.left = x + 'px';
+                moveBox.style.top = y + 'px';
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div>
+        <h2><a href="javascript:;">点击回访拖拽轨迹</a></h2>
+        <p><b>Drag：</b><span>false</span></p>
+        <p><b>offsetLeft：</b><span>45%</span></p>
+        <p><b>offsetTop：</b><span>45%</span></p>
+    </div>
+</body>
+
+</html>

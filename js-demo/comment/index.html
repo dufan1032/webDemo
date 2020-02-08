@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="Author" contentr="author_name">
+    <meta name="Keywords" contentr="关键字">
+    <meta name="Description" contentr="页面描述">
+    <title>仿评论效果</title>
+    <style>
+    *{ margin: 0; padding: 0; list-style: none; }
+    a{ text-decoration: none; }
+    a:hover{ text-decoration: underline; }
+    body{ background: #3c3a3b; color: #333; font:12px/1.5 \5b8b\4f53; }
+    .clearfix:after{ content:""; height:0; line-height:0; display:block; visibility:hidden; clear:both;}
+    .clearfix{ zoom: 1; }
+
+    #comment{ width: 500px; background-color: white; margin: 10px auto; padding: 5px 10px; border-radius: 5px; }
+    #comment .commentTitle{ height: 27px; line-height: 27px; font:500 18px/1.5 \5fae\8f6f\96c5\9ed1; }
+    #comment .headImg{ padding: 8px 0; }
+    #comment .headImg .name{ width: 156px; height: 28px; border-radius: 5px; padding-left: 5px; margin-left: 3px; }
+    #comment .headImg img{ width: 30px; margin-right: 10px; opacity: 0.3; filter: Alpha(opacity=30); float: right; }
+    #comment .headImg img:hover, #comment .headImg .imgHover{ opacity: 1; filter: Alpha(opacity=100); }
+    #comment .textMsg{ width: 480px; height: 65px; overflow: auto; resize: none; color: #777; border-radius: 7px; padding: 5px 5px; font:14px/1.5 arial; }
+    #comment .textMsg:focus, #comment .headImg .name:focus{ border-color: green; }
+    #comment .sub{ text-align: right; color: #999; height: 50px; line-height: 40px;  }
+    #comment .sub .num{ font: 26px/30px Georgia, Tahoma, Arial; }
+    #comment .sub .pubBtn{ background-color: #8d8; width: 112px; height: 30px; border: 0; border-radius: 5px; }
+    #comment .sub .pubBtn:hover{ background-color: #5d5; }
+
+    #comment .cmt .cmtTitle{ height: 35px; background-color: #e3eaec; margin-bottom: 10px; }
+    #comment .cmt .cmtTitle span{ float: left; width: 90px; text-align: center; height: 25px; line-height: 25px; margin: 10px 0 0 5px; background-color: #FFF; }
+    #comment .cmt .cmtArea li{ padding: 10px 0;}
+    #comment .cmt .cmtArea li:hover{ background-color: #eee; }
+    #comment .cmt .cmtArea img{ float: left; border-radius: 5px; margin-left: 5px; }
+    #comment .cmt .cmtArea .content{ float: left; width: 430px; margin-left: 10px;  }
+    #comment .cmt .cmtArea .contentMsg{ padding: 5px 0; font-size: 14px/1.5; word-wrap:break-word; }
+    #comment .cmt .cmtArea .content a{ color: #2b4a78; }
+    #comment .cmt .cmtArea .cmtData{ color: #889db6; font: 12px/18px arial; }
+    #comment .cmt .cmtArea .cmtDel{ float: right; margin-right: 10px; display: none; }
+    </style>
+</head>
+<body>
+<div id="comment">
+    <form>
+        <p class="commentTitle">留下你评论吧！</p>
+        <div class="headImg">
+            <input type="text" class="name" placeholder="留下你的名字吧" />
+            <input type="text" style="display: none;" value="防止文本框中按下enter键刷新页面" />
+            <img src="img/face1.gif" alt="" />
+            <img src="img/face2.gif" alt="" />
+            <img src="img/face3.gif" alt="" />
+            <img src="img/face4.gif" alt="" />
+            <img src="img/face5.gif" alt="" />
+            <img src="img/face6.gif" alt="" />
+            <img src="img/face7.gif" alt="" />
+            <img src="img/face8.gif" alt="" class="imgHover" />
+        </div>
+        <textarea class="textMsg" placeholder="说点什么吧"></textarea>
+        <div class="sub clearfix">
+            还能输入<span class="num">140</span>个字
+            <input type="button" value="发表" class="pubBtn" />
+        </div>
+    </form>
+    <div class="cmt">
+        <p class="cmtTitle clearfix"><span>评论区</span></p>
+        <ul class="cmtArea">
+            <li class="clearfix">
+                <img src="img/face1.gif" alt="" />
+                <div class="content">
+                    <div class="contentMsg">
+                        <a href="javascript:;" class="userName">用户名</a><span class="commentContent">: 我这里是评论</span>
+                    </div>
+                    <div class="cmtData clearfix">
+                        <span class="time">19年12月28日 16:20</span>
+                        <a href="javascript:;" class="cmtDel">删除</a>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>
+<script>
+window.onload = function(){
+    let name = document.getElementsByClassName('name')[0];
+    let headImg = document.getElementsByClassName('headImg')[0].getElementsByTagName('img');
+    let textMsg = document.getElementsByClassName('textMsg')[0];
+    let pubBtn = document.getElementsByClassName('pubBtn')[0];
+    let cmtArea = document.getElementsByClassName('cmtArea')[0];
+    let cmtList = cmtArea.getElementsByTagName('li');
+    let imgUrl = 'img/face8.gif';
+
+    // 给 姓名 和 文本框添加事件：判断格式是否正确
+    name.onkeyup = textMsg.onkeyup = function(e){
+        let ev = window.event || e;
+        // 如果按下是 ctrl+enter 就触发发布事件
+        if(ev.ctrlKey && ev.keyCode == 13){
+            pubBtn.click();
+            return ;
+        }
+        if(isTrue(this)){
+            this.style.borderColor = 'red';
+            contentNum(this,'red');
+        }else{
+            this.style.borderColor = '';
+            contentNum(this,'');
+        }
+    }
+
+    // 发布事件
+    pubBtn.onclick = function(){
+        // 如果输入没有问题，则将评论发表在评论去,有问题报错
+        if(isTrue(name)){
+            alert('姓名由2-8位字母、数字、下划线、汉字组成');
+            return ;
+        }
+        if(isTrue(textMsg)){
+            alert('您输入的内容已经超出限制');
+            return ;
+        }
+        // 调用发表评论函数：1.发表人 2.发表内容 3.复制的节点 4.插入节点的父级元素
+        let cmtListNew = cmtList[0].cloneNode(true);
+        addComment(cmtArea,cmtListNew,name.value,textMsg.value);
+        // 发布完成后清空输入信息
+        name.value = textMsg.value = '';
+    }
+
+    // 给所有 头像图片 设置效果：点击当前图片显示其他图片透明度为0.3
+    for(let imgItem of headImg){
+        imgItem.onclick = function(){
+            for(let i=0;i<headImg.length;i++){
+                headImg[i].className = '';
+            }
+            this.className = 'imgHover';
+            imgUrl = this.src;
+        }
+    }
+
+    // 封装函数: 设置评论内容剩余输入字数，及错误信息
+    function contentNum(el,data){
+        if(el.className == 'textMsg'){
+            let errData = document.getElementsByClassName('sub')[0];
+            let numNode = errData.getElementsByClassName('num')[0];
+            errData.style.color = data;
+            numNode.innerHTML = 140 - el.value.length;
+        }
+    }
+
+    // 封装函数：添加评论(评论人、评论内容，评论时间，删除按钮)
+    function addComment(area,commentList,commentName,commentCon){
+        delFun(commentList); // 设置 删除按钮
+        // 获取评论发表时间
+        let time = new Date();
+        let year = time.getFullYear(); // 获取年
+        let month = time.getMonth()+1; // 获取月
+        let day = time.getDay(); // 获取日
+        let hour = time.getHours(); // 获取小时
+        let minute = time.getMinutes(); // 获取分
+        let commentTime = year + '年' + month + '月' + day + '日 ' + hour + ':' + minute; // 设置时间格式
+        let imgHeadNode = commentList.getElementsByTagName('img')[0]; // 获取头像所在位置
+        let nameNode = commentList.getElementsByClassName('userName')[0]; // 获取评论人存放位置
+        let contentNode = commentList.getElementsByClassName('commentContent')[0]; // 获取评论内容存放位置
+        let timeNode = commentList.getElementsByClassName('time')[0]; // 获取评论时间存放位置
+        imgHeadNode.src = imgUrl;
+        nameNode.innerHTML = commentName;
+        contentNode.innerHTML = ': ' + commentCon;
+        timeNode.innerHTML = commentTime;
+        area.prepend(commentList);
+    }
+
+    // 封装函数: 鼠标滑过当前评论删除标签浮现、隐藏，删除功能
+    function delFun(el){
+        let cmtDel = el.getElementsByClassName('cmtDel')[0];
+        el.onmouseover = function(){
+            cmtDel.style.display = 'block';
+        }
+        el.onmouseleave = function(){
+            cmtDel.style.display = 'none';
+        }
+        cmtDel.onclick = function(){
+            el.parentNode.removeChild(el);
+        }
+    }
+
+    // 封装函数：判断输入格式是否正确
+    function isTrue(el){
+        if(el.tagName == 'INPUT'){
+            if(el.value.length < 2 || el.value.length > 8 ){
+                // alert('姓名由2-8位字母、数字、下划线、汉字组成');
+                return true;
+            }
+        }
+        else if(el.tagName == 'TEXTAREA'){
+            if(el.value.length > 140){
+                // alert('您输入的内容已经超出限制');
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // 未用：封装函数：判断汉字个数,返回 汉字个数*2
+    function isChinese(str){
+        let strLen = 0;
+        for(var i=0;i<str.length;i++){
+            if(str.charCodeAt(i)){
+                strLen += 2;
+            }else{
+                strLen += 0;
+            }
+        }
+        return strLen;
+    }
+
+    // 初始化 删除 浮现功能并绑定删除功能
+    for(let item of cmtList){
+        delFun(item);
+    }
+}
+</script>
+</body>
+</html>
