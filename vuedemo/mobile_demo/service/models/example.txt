@@ -1,0 +1,43 @@
+// 数据举例
+
+const db = require('../configMysql/db');
+
+module.exports = db.defineModel('users', {
+    email: {
+        type: db.STRING(100),
+        unique: true
+    },
+    passwd: db.STRING(100),
+    name: db.STRING(100),
+    gender: db.BOOLEAN
+});
+
+// 使用举例
+const model = require('./configMysql/model');
+let
+    Pet = model.pet,
+    User = model.user;
+
+(async () => {
+    var user = await User.create({
+        name: 'John',
+        gender: false,
+        email: 'john-' + Date.now() + '@garfield.pet',
+        passwd: 'hahaha'
+    });
+    console.log('created: ' + JSON.stringify(user));
+    var cat = await Pet.create({
+        ownerId: user.id,
+        name: 'Garfield',
+        gender: false,
+        birth: '2007-07-07',
+    });
+    console.log('created: ' + JSON.stringify(cat));
+    var dog = await Pet.create({
+        ownerId: user.id,
+        name: 'Odie',
+        gender: true,
+        birth: '2008-08-08',
+    });
+    console.log('created: ' + JSON.stringify(dog));
+})();

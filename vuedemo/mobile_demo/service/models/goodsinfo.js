@@ -1,0 +1,26 @@
+const db = require('../configMysql/db');
+
+module.exports = db.defineModel('goodsInfo', {
+    id : db.STRING(100),
+    GOODS_SERIAL_NUMBER:db.STRING(20),
+    SHOP_ID:db.STRING(50),
+    SUB_ID:db.STRING(50),
+    GOOD_TYPE:db.INTEGER,
+    GOODS_STATE:db.INTEGER,
+    NAME:db.STRING(50),
+    ORI_PRICE:db.INTEGER,
+    PRESENT_PRICE:db.INTEGER,
+    AMOUNT:db.INTEGER,
+    DETAIL:db.STRING(5000),
+    BRIEF:db.STRING(100),
+    SALES_COUNT:db.INTEGER,
+    IMAGE1:db.STRING(200),
+    IMAGE2:db.STRING(200),
+    IMAGE3:db.STRING(200),
+    IMAGE4:db.STRING(200),
+    IMAGE5:db.STRING(200),
+    ORIGIN_PLACE:db.STRING(20),
+    GOOD_SCENT:db.STRING(50),
+    IS_RECOMMEND:db.BOOLEAN,
+    PICTURE_COMPERSS_PATH:db.STRING(200)
+});
